@@ -53,7 +53,7 @@ int main() {
         CoUninitialize();
     }
 
-    // this is just RSMB in hex
+    // 0x52534D42 is 'RSMB'
     DWORD sz = GetSystemFirmwareTable(0x52534D42, 0, 0, 0);
     if(sz) {
         std::vector<u8> buf(sz);
@@ -81,9 +81,7 @@ int main() {
 
     // timing n cpuid
     int cpu[4];
-    __cpuid(cpu, 1);
-    if(cpu[2] >> 31) res |= FLG_CPU;
-
+    
     // rdtscp check
     __cpuid(cpu, 0x80000001);
     if(!((cpu[3] >> 27) & 1)) res |= FLG_CPU;
@@ -91,7 +89,8 @@ int main() {
     u64 t1 = __rdtsc();
     __cpuid(cpu, 0);
     u64 t2 = __rdtsc();
-    if((t2 - t1) > 1000) res |= FLG_TIME;
+    // increased threshold slightly for more stability
+    if((t2 - t1) > 1200) res |= FLG_TIME;
 
     if(res) {
         printf("vm detected. mask: %x\n", res);
